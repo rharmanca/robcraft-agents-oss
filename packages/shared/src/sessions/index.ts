@@ -66,6 +66,7 @@ export {
   listArchivedSessions,
   listActiveSessions,
   deleteOldArchivedSessions,
+  archiveIdleSessions,
   // Plan storage
   formatPlanAsMarkdown,
   parsePlanFromMarkdown,
