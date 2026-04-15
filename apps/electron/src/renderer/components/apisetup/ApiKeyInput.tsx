@@ -137,7 +137,7 @@ const PI_ONLY_PRESET_KEYS: ReadonlySet<string> = new Set(['minimax-global', 'min
 
 const COMPAT_ANTHROPIC_DEFAULTS = 'claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5'
 const COMPAT_OPENAI_DEFAULTS = 'openai/gpt-5.2-codex, openai/gpt-5.1-codex-mini'
-const COMPAT_MINIMAX_DEFAULTS = 'MiniMax-M2.5, MiniMax-M2.5-highspeed'
+const COMPAT_MINIMAX_DEFAULTS = 'MiniMax-M2.7, MiniMax-M2.7-highspeed'
 const COMPAT_KIMI_DEFAULTS = 'k2p5, kimi-k2-thinking'
 const COMPAT_XIAOMI_DEFAULTS = 'mimo-v2-pro, mimo-v2-flash, mimo-v2-omni'
 const COMPAT_XIAOMI_TOKEN_PLAN_DEFAULTS = 'mimo-v2-pro, mimo-v2-omni'

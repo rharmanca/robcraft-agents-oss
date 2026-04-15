@@ -8,9 +8,15 @@ import { getPiProviderBaseUrl } from '../../../../config/models-pi.ts';
 // Models with known capabilities are listed here so they work correctly
 // without manual config. Values sourced from Pi SDK model catalog.
 const KNOWN_CUSTOM_ENDPOINT_OVERRIDES: Record<string, { contextWindow?: number; maxTokens?: number; reasoning?: boolean }> = {
+  // Xiaomi MiMo
   'mimo-v2-pro':   { contextWindow: 1_048_576, maxTokens: 131_072, reasoning: true },
   'mimo-v2-flash': { contextWindow: 262_144,   maxTokens: 65_536,  reasoning: true },
   'mimo-v2-omni':  { contextWindow: 262_144,   maxTokens: 65_536,  reasoning: true },
+  // MiniMax
+  'MiniMax-M2.7':            { contextWindow: 196_608, maxTokens: 65_536, reasoning: true },
+  'MiniMax-M2.7-highspeed':  { contextWindow: 196_608, maxTokens: 65_536, reasoning: true },
+  'MiniMax-M2.5':            { contextWindow: 196_608, maxTokens: 65_536, reasoning: true },
+  'MiniMax-M2.5-highspeed':  { contextWindow: 196_608, maxTokens: 65_536, reasoning: true },
 };
 
 // ── Copilot model types ────────────────────────────────────────────────
