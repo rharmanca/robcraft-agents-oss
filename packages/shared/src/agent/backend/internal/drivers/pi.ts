@@ -3,6 +3,16 @@ import type { ModelDefinition } from '../../../../config/models.ts';
 import { getAllPiModels, getPiModelsForAuthProvider } from '../../../../config/models-pi.ts';
 import { getPiProviderBaseUrl } from '../../../../config/models-pi.ts';
 
+// ── Known overrides for custom endpoint models ─────────────────────────
+// Custom endpoints use conservative defaults (128K context, 32K output, no reasoning).
+// Models with known capabilities are listed here so they work correctly
+// without manual config. Values sourced from Pi SDK model catalog.
+const KNOWN_CUSTOM_ENDPOINT_OVERRIDES: Record<string, { contextWindow?: number; maxTokens?: number; reasoning?: boolean }> = {
+  'mimo-v2-pro':   { contextWindow: 1_048_576, maxTokens: 131_072, reasoning: true },
+  'mimo-v2-flash': { contextWindow: 262_144,   maxTokens: 65_536,  reasoning: true },
+  'mimo-v2-omni':  { contextWindow: 262_144,   maxTokens: 65_536,  reasoning: true },
+};
+
 // ── Copilot model types ────────────────────────────────────────────────
 type RawCopilotModel = {
   id: string;
@@ -236,8 +246,16 @@ export const piDriver: ProviderDriver = {
     baseUrl: context.connection?.baseUrl,
     customEndpoint: context.connection?.customEndpoint,
     customModels: context.connection?.models?.map(m => {
-      if (typeof m === 'string') return m;
-      return m.contextWindow ? { id: m.id, contextWindow: m.contextWindow } : m.id;
+      const id = typeof m === 'string' ? m : m.id;
+      const explicit = typeof m === 'string' ? {} : { contextWindow: m.contextWindow, maxTokens: m.maxTokens };
+      // Inject known capabilities for custom endpoint models that are stored
+      // as plain strings. Explicit connection overrides take precedence.
+      const known = KNOWN_CUSTOM_ENDPOINT_OVERRIDES[id];
+      const contextWindow = explicit.contextWindow ?? known?.contextWindow;
+      const maxTokens = explicit.maxTokens ?? known?.maxTokens;
+      const reasoning = known?.reasoning;
+      const hasOverrides = contextWindow || maxTokens || reasoning;
+      return hasOverrides ? { id, contextWindow, maxTokens, reasoning } : id;
     }),
   }),
   fetchModels: async ({ connection, credentials, timeoutMs }) => {

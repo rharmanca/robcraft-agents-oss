@@ -109,6 +109,7 @@ const ANTHROPIC_PRESETS: Preset[] = [
   { key: 'minimax-cn', label: 'Minimax CN', url: 'https://api.minimaxi.com/anthropic', placeholder: 'Paste your key here...' },
   { key: 'kimi-coding', label: 'Kimi (Coding)', url: 'https://api.kimi.com/coding', placeholder: 'sk-kimi-...' },
   { key: 'vercel-ai-gateway', label: 'Vercel AI Gateway', url: 'https://ai-gateway.vercel.sh', placeholder: 'Paste your key here...' },
+  { key: 'xiaomi-mimo', label: 'Xiaomi MiMo', url: 'https://api.xiaomimimo.com/v1', placeholder: 'Paste your API key...' },
   { key: 'custom', label: 'Custom', url: '', placeholder: 'Paste your key here...' },
 ]
 
@@ -138,6 +139,8 @@ const COMPAT_ANTHROPIC_DEFAULTS = 'claude-opus-4-6, claude-sonnet-4-6, claude-ha
 const COMPAT_OPENAI_DEFAULTS = 'openai/gpt-5.2-codex, openai/gpt-5.1-codex-mini'
 const COMPAT_MINIMAX_DEFAULTS = 'MiniMax-M2.5, MiniMax-M2.5-highspeed'
 const COMPAT_KIMI_DEFAULTS = 'k2p5, kimi-k2-thinking'
+const COMPAT_XIAOMI_DEFAULTS = 'mimo-v2-pro, mimo-v2-flash, mimo-v2-omni'
+const COMPAT_XIAOMI_TOKEN_PLAN_DEFAULTS = 'mimo-v2-pro, mimo-v2-omni'
 
 function getPresetsForProvider(providerType: 'anthropic' | 'openai' | 'pi' | 'google' | 'pi_api_key'): Preset[] {
   if (providerType === 'pi_api_key') return ANTHROPIC_PRESETS
@@ -148,9 +151,27 @@ function getPresetsForProvider(providerType: 'anthropic' | 'openai' | 'pi' | 'go
   return ANTHROPIC_PRESETS.filter(p => !PI_ONLY_PRESET_KEYS.has(p.key))
 }
 
+/** Check if a URL points to any Xiaomi MiMo endpoint (regular API or Token Plan). */
+function isXiaomiMimoUrl(url: string): boolean {
+  return url.includes('xiaomimimo.com')
+}
+
+/** Check if a URL points to a Xiaomi Token Plan endpoint (regional, e.g. token-plan-sgp). */
+function isXiaomiTokenPlanUrl(url: string): boolean {
+  return url.includes('token-plan') && url.includes('xiaomimimo.com')
+}
+
+/** Return the appropriate Xiaomi model defaults based on endpoint type. */
+function getXiaomiDefaults(url: string): string {
+  return isXiaomiTokenPlanUrl(url) ? COMPAT_XIAOMI_TOKEN_PLAN_DEFAULTS : COMPAT_XIAOMI_DEFAULTS
+}
+
 function getPresetForUrl(url: string, presets: Preset[]): PresetKey {
   const match = presets.find(p => p.key !== 'custom' && p.url === url)
-  return match?.key ?? 'custom'
+  if (match) return match.key
+  // Fuzzy-match Xiaomi MiMo domains (Token Plan regional URLs, etc.)
+  if (isXiaomiMimoUrl(url)) return 'xiaomi-mimo'
+  return 'custom'
 }
 
 function parseModelList(value: string): string[] {
@@ -282,6 +303,8 @@ export function ApiKeyInput({
       setConnectionDefaultModel(COMPAT_MINIMAX_DEFAULTS)
     } else if (preset.key === 'kimi-coding') {
       setConnectionDefaultModel(COMPAT_KIMI_DEFAULTS)
+    } else if (preset.key === 'xiaomi-mimo') {
+      setConnectionDefaultModel(COMPAT_XIAOMI_DEFAULTS)
     } else if (preset.key === 'custom') {
       setConnectionDefaultModel(providerType === 'openai' ? COMPAT_OPENAI_DEFAULTS : COMPAT_ANTHROPIC_DEFAULTS)
     } else {
@@ -309,6 +332,8 @@ export function ApiKeyInput({
         setConnectionDefaultModel(COMPAT_MINIMAX_DEFAULTS)
       } else if (presetKey === 'kimi-coding') {
         setConnectionDefaultModel(COMPAT_KIMI_DEFAULTS)
+      } else if (presetKey === 'xiaomi-mimo') {
+        setConnectionDefaultModel(getXiaomiDefaults(value))
       } else if (presetKey === 'openrouter' || presetKey === 'vercel-ai-gateway' || presetKey === 'custom') {
         setConnectionDefaultModel(providerType === 'openai' ? COMPAT_OPENAI_DEFAULTS : COMPAT_ANTHROPIC_DEFAULTS)
       }
@@ -381,10 +406,15 @@ export function ApiKeyInput({
     }
 
     // Include custom endpoint protocol when user configured a custom base URL
-    const isCustomEndpoint = activePreset === 'custom' && !!effectiveBaseUrl
-    const customEndpoint = isCustomEndpoint ? { api: customApi } : undefined
+    // Xiaomi MiMo URLs are treated as custom endpoints; detect protocol from URL path
+    const isXiaomi = activePreset === 'xiaomi-mimo' || isXiaomiMimoUrl(effectiveBaseUrl)
+    const isCustomEndpoint = (activePreset === 'custom' || isXiaomi) && !!effectiveBaseUrl
+    const effectiveCustomApi = isXiaomi
+      ? (effectiveBaseUrl.includes('/anthropic') ? 'anthropic-messages' : 'openai-completions') as CustomEndpointApi
+      : customApi
+    const customEndpoint = isCustomEndpoint ? { api: effectiveCustomApi } : undefined
     const resolvedPiAuthProvider = isCustomEndpoint
-      ? (customApi === 'anthropic-messages' ? 'anthropic' : 'openai')
+      ? (effectiveCustomApi === 'anthropic-messages' ? 'anthropic' : 'openai')
       : effectivePiAuthProvider
 
     onSubmit({
