@@ -17,6 +17,20 @@ describe('resolveClaudeThinkingOptions', () => {
     })
   })
 
+  it('uses adaptive thinking for Opus 4.7 (extended thinking budgets removed)', () => {
+    const result = resolveClaudeThinkingOptions({
+      thinkingLevel: 'high',
+      model: 'claude-opus-4-7',
+      providerType: 'anthropic',
+      minimizeThinking: false,
+    })
+
+    expect(result).toEqual({
+      thinking: { type: 'adaptive' },
+      effort: 'high',
+    })
+  })
+
   it('falls back to token budgets for anthropic_compat endpoints', () => {
     const result = resolveClaudeThinkingOptions({
       thinkingLevel: 'high',

@@ -9,6 +9,8 @@ import { getPiProviderBaseUrl } from '../../../../config/models-pi.ts';
 // without manual config. Values sourced from Pi SDK model catalog.
 const KNOWN_CUSTOM_ENDPOINT_OVERRIDES: Record<string, { contextWindow?: number; maxTokens?: number; reasoning?: boolean }> = {
   // Xiaomi MiMo
+  'mimo-v2.5-pro': { contextWindow: 1_048_576, maxTokens: 131_072, reasoning: true },
+  'mimo-v2.5':     { contextWindow: 1_048_576, maxTokens: 131_072, reasoning: true },
   'mimo-v2-pro':   { contextWindow: 1_048_576, maxTokens: 131_072, reasoning: true },
   'mimo-v2-flash': { contextWindow: 262_144,   maxTokens: 65_536,  reasoning: true },
   'mimo-v2-omni':  { contextWindow: 262_144,   maxTokens: 65_536,  reasoning: true },

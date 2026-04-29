@@ -70,6 +70,7 @@ export function getProviderDisplayName(providerType: string, baseUrl?: string | 
     if (url.includes('kimi.com')) return 'Kimi'
     if (url.includes('minimax.io') || url.includes('minimaxi.com')) return 'Minimax'
     if (url.includes('v0.dev') || url.includes('vercel')) return 'Vercel'
+    if (url.includes('xiaomimimo.com')) return 'Xiaomi MiMo'
   }
   return providerDisplayNames[providerType] || providerType
 }
@@ -180,6 +181,10 @@ export function getProviderIcon(
       return providerIcons.copilot
     case 'pi':
     case 'pi_compat': {
+      // Check base URL first for known endpoints that aren't Pi SDK providers
+      if (baseUrl?.toLowerCase().includes('xiaomimimo.com')) {
+        return `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url=https://mimo.xiaomi.com`
+      }
       // Resolve to actual upstream provider icon
       if (piAuthProvider) {
         const iconKey = piAuthProviderToIcon(piAuthProvider)

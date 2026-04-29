@@ -455,12 +455,14 @@ export function getModelsForProviderType(providerType: LlmProviderType, piAuthPr
  * Format: bare model IDs (without pi/ prefix). Matched against pi/{id} or pi/{id}-*.
  */
 export const PI_PREFERRED_DEFAULTS: Record<string, string[]> = {
-  anthropic: ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5'],
+  anthropic: ['claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5'],
   openai: ['gpt-5.2', 'gpt-5.1', 'gpt-5', 'o4-mini', 'o3', 'gpt-4o'],
   'openai-codex': ['gpt-5.2', 'gpt-5.1', 'gpt-5', 'o4-mini', 'o3', 'gpt-4o'],
   google: ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'],
   'github-copilot': ['claude-sonnet-4-6', 'gpt-5', 'o4-mini', 'claude-haiku-4-5'],
-  'amazon-bedrock': ['us.anthropic.claude-opus-4-6-v1', 'us.anthropic.claude-sonnet-4-6', 'us.anthropic.claude-haiku-4-5-20251001-v1:0'],
+  'amazon-bedrock': ['us.anthropic.claude-opus-4-7', 'us.anthropic.claude-opus-4-6-v1', 'us.anthropic.claude-sonnet-4-6', 'us.anthropic.claude-haiku-4-5-20251001-v1:0'],
+  openrouter: ['xiaomi/mimo-v2.5-pro', 'xiaomi/mimo-v2.5', 'xiaomi/mimo-v2-pro', 'qwen/qwen3.6-plus-preview:free', 'anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'openai/gpt-5'],
+  'xiaomi-mimo': ['mimo-v2.5-pro', 'mimo-v2.5', 'mimo-v2-pro', 'mimo-v2-flash', 'mimo-v2-omni'],
 };
 
 export function getDefaultModelsForConnection(providerType: LlmProviderType, piAuthProvider?: string): Array<ModelDefinition | string> {
@@ -585,6 +587,7 @@ export function isValidProviderAuthCombination(
  * Source: Pi SDK registry (models.generated.js) — us.* variants
  */
 const BEDROCK_MODEL_MAP: Record<string, string> = {
+  'claude-opus-4-7': 'us.anthropic.claude-opus-4-7',
   'claude-opus-4-6': 'us.anthropic.claude-opus-4-6-v1',
   'claude-sonnet-4-6': 'us.anthropic.claude-sonnet-4-6',
   'claude-haiku-4-5-20251001': 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
@@ -592,6 +595,7 @@ const BEDROCK_MODEL_MAP: Record<string, string> = {
   'claude-opus-4-5-20251101': 'us.anthropic.claude-opus-4-5-20251101-v1:0',
   'claude-sonnet-4-5-20250929': 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
   // Also map base IDs (without region prefix) to US inference profiles
+  'anthropic.claude-opus-4-7': 'us.anthropic.claude-opus-4-7',
   'anthropic.claude-opus-4-6-v1': 'us.anthropic.claude-opus-4-6-v1',
   'anthropic.claude-sonnet-4-6': 'us.anthropic.claude-sonnet-4-6',
   'anthropic.claude-haiku-4-5-20251001-v1:0': 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
@@ -599,31 +603,8 @@ const BEDROCK_MODEL_MAP: Record<string, string> = {
   'anthropic.claude-sonnet-4-5-20250929-v1:0': 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
 }
 
-/** Reverse map: all known Bedrock ID variants → bare Anthropic ID */
-const BEDROCK_REVERSE_MAP: Record<string, string> = {
-  // US inference profiles
-  'us.anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'us.anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'us.anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  'us.anthropic.claude-opus-4-5-20251101-v1:0': 'claude-opus-4-5-20251101',
-  'us.anthropic.claude-sonnet-4-5-20250929-v1:0': 'claude-sonnet-4-5-20250929',
-  // EU inference profiles
-  'eu.anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'eu.anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'eu.anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  'eu.anthropic.claude-opus-4-5-20251101-v1:0': 'claude-opus-4-5-20251101',
-  'eu.anthropic.claude-sonnet-4-5-20250929-v1:0': 'claude-sonnet-4-5-20250929',
-  // Global inference profiles
-  'global.anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'global.anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'global.anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  // Base IDs (no region prefix)
-  'anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  'anthropic.claude-opus-4-5-20251101-v1:0': 'claude-opus-4-5-20251101',
-  'anthropic.claude-sonnet-4-5-20250929-v1:0': 'claude-sonnet-4-5-20250929',
-}
+/** Reverse map: all known Bedrock ID variants → bare Anthropic ID (shared) */
+import { BEDROCK_TO_BARE } from './model-id-maps.ts';
 
 /** Map a bare Anthropic model ID to its Bedrock-native equivalent. Pass-through if already native or unknown. */
 export function toBedrockNativeId(modelId: string): string {
@@ -632,7 +613,7 @@ export function toBedrockNativeId(modelId: string): string {
 
 /** Map a Bedrock-native model ID back to its bare Anthropic equivalent. Pass-through if already bare or unknown. */
 export function fromBedrockNativeId(modelId: string): string {
-  return BEDROCK_REVERSE_MAP[modelId] ?? modelId
+  return BEDROCK_TO_BARE[modelId] ?? modelId
 }
 
 /**

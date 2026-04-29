@@ -27,8 +27,8 @@ export interface BackendRuntimePayload extends Record<string, unknown> {
   baseUrl?: string;
   /** Custom endpoint protocol config (api type for routing). */
   customEndpoint?: { api: string };
-  /** Models registered for a custom endpoint. Strings default to 128K context; objects allow overrides. */
-  customModels?: Array<string | { id: string; contextWindow?: number }>;
+  /** Models registered for a custom endpoint. Strings default to 128K context / 32K output; objects allow overrides. */
+  customModels?: Array<string | { id: string; contextWindow?: number; maxTokens?: number; reasoning?: boolean }>;
 }
 
 export interface BackendResolutionContext {

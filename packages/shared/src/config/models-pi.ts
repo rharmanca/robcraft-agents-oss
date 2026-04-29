@@ -63,8 +63,10 @@ const PI_EXCLUDED_MODELS: Set<string> = new Set([
  * Keep this list narrow and intentional.
  */
 const PI_EXCLUDED_MODEL_PREFIXES: string[] = [
-  // Requested cleanup: hide legacy GPT-4 family variants (gpt-4, gpt-4.1, gpt-4o, ...)
+  // Hide legacy GPT-4 family variants (gpt-4, gpt-4.1, gpt-4o, ...)
   'gpt-4',
+  // Exclude gemini-2.0-flash and any future thinking variants added to the SDK
+  'gemini-2.0-flash',
 ];
 
 function isExcludedPiModel(modelId: string): boolean {
@@ -73,20 +75,50 @@ function isExcludedPiModel(modelId: string): boolean {
 }
 
 /**
+ * Models available on providers but not yet in the Pi SDK catalog.
+ * Remove entries here once the SDK catches up (run `getModels(provider)` to check).
+ */
+const PI_SUPPLEMENTARY_MODELS: Record<string, ModelDefinition[]> = {
+  openrouter: [
+    {
+      id: 'pi/qwen/qwen3.6-plus-preview:free',
+      name: 'Qwen 3.6 Plus Preview (Free)',
+      shortName: 'Qwen 3.6+',
+      description: 'Qwen reasoning model via OpenRouter (free tier)',
+      provider: 'pi',
+      contextWindow: 131_072,
+      supportsThinking: true,
+    },
+  ],
+};
+
+/**
  * Get Pi models for a specific auth provider directly from the Pi SDK.
+ * Supplements with PI_SUPPLEMENTARY_MODELS for models not yet in the SDK.
  */
 export function getPiModelsForAuthProvider(piAuthProvider: string): ModelDefinition[] {
+  const results: ModelDefinition[] = [];
   try {
     const models = getModels(piAuthProvider as KnownProvider);
     if (models.length > 0) {
-      return models
+      results.push(...models
         .filter(m => !isExcludedPiModel(m.id))
-        .map(piModelToDefinition);
+        .map(piModelToDefinition));
     }
   } catch {
     // Provider not recognized by SDK — fall through
   }
-  return [];
+  // Merge supplementary models not yet in the SDK
+  const supplementary = PI_SUPPLEMENTARY_MODELS[piAuthProvider];
+  if (supplementary) {
+    const existingIds = new Set(results.map(m => m.id));
+    for (const model of supplementary) {
+      if (!existingIds.has(model.id)) {
+        results.push(model);
+      }
+    }
+  }
+  return results;
 }
 
 /**
@@ -114,8 +146,9 @@ export function getAllPiModels(): ModelDefinition[] {
 
 /**
  * Display metadata for Pi SDK providers.
+ * Includes supplementary providers (e.g. xiaomi-mimo) not yet in the SDK.
  */
-const PI_PROVIDER_DISPLAY: Partial<Record<KnownProvider, { label: string; placeholder: string }>> = {
+const PI_PROVIDER_DISPLAY: Partial<Record<KnownProvider | string, { label: string; placeholder: string }>> = {
   'anthropic':              { label: 'Anthropic',          placeholder: 'sk-ant-...' },
   'google':                 { label: 'Google AI Studio',   placeholder: 'AIza...' },
   'openai':                 { label: 'OpenAI',             placeholder: 'sk-...' },
@@ -131,6 +164,7 @@ const PI_PROVIDER_DISPLAY: Partial<Record<KnownProvider, { label: string; placeh
   'minimax':                { label: 'Minimax',            placeholder: 'Paste your key here...' },
   'kimi-coding':            { label: 'Kimi (Coding)',      placeholder: 'sk-kimi-...' },
   'zai':                    { label: 'z.ai (GLM)',         placeholder: 'Paste your key here...' },
+  'xiaomi-mimo':            { label: 'Xiaomi MiMo',        placeholder: 'Paste your API key...' },
 };
 
 /**

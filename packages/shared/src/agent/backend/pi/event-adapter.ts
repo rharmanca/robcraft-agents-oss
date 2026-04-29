@@ -24,7 +24,7 @@ import { parseError } from '../../errors.ts';
 
 /**
  * Combined event type the adapter can handle.
- * AgentSessionEvent is a superset of PiAgentEvent (adds auto_compaction_*, auto_retry_*).
+ * AgentSessionEvent is a superset of PiAgentEvent (adds compaction_*, auto_retry_*).
  */
 type PiEvent = PiAgentEvent | AgentSessionEvent;
 
@@ -197,6 +197,13 @@ export class PiEventAdapter extends BaseEventAdapter {
             yield { type: 'error', message: msg.errorMessage };
           }
           break;
+        }
+
+        // Surface output-length truncation so users know the response was cut short.
+        // The Pi SDK maps finish_reason:"length" to stopReason:"length" — without this
+        // warning the text just silently stops mid-sentence.
+        if (msg.stopReason === 'length') {
+          yield { type: 'info', message: 'Response was truncated — the model hit its output token limit.' };
         }
 
         // Extract text content from the final assistant message
@@ -374,13 +381,13 @@ export class PiEventAdapter extends BaseEventAdapter {
       // Session-level events (AgentSessionEvent extensions)
       // ============================================================
 
-      case 'auto_compaction_start':
+      case 'compaction_start':
         // Use "Compacting" keyword so session handler detects statusType: 'compacting'
         yield { type: 'status', message: 'Compacting context...' };
         break;
 
-      case 'auto_compaction_end': {
-        const compactionEvent = event as Extract<AgentSessionEvent, { type: 'auto_compaction_end' }>;
+      case 'compaction_end': {
+        const compactionEvent = event as Extract<AgentSessionEvent, { type: 'compaction_end' }>;
         if (compactionEvent.result && !compactionEvent.aborted) {
           // Use "Compacted" keyword so session handler detects statusType: 'compaction_complete'
           yield { type: 'info', message: 'Compacted context to fit within limits' };

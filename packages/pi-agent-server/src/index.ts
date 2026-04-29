@@ -53,10 +53,11 @@ import { setBedrockProviderModule } from '@mariozechner/pi-ai';
 import { bedrockProviderModule } from '@mariozechner/pi-ai/bedrock-provider';
 setBedrockProviderModule(bedrockProviderModule);
 
-// Register for the pi-agent-core's nested pi-ai copy (separate module scope in bundle)
-import { setBedrockProviderModule as setBedrockProviderModule2 } from '@mariozechner/pi-agent-core/node_modules/@mariozechner/pi-ai/dist/providers/register-builtins.js';
-import { bedrockProviderModule as bedrockProviderModule2 } from '@mariozechner/pi-agent-core/node_modules/@mariozechner/pi-ai/bedrock-provider';
-setBedrockProviderModule2(bedrockProviderModule2);
+// NOTE: When pi-agent-core had a separate nested pi-ai copy, we needed to register
+// Bedrock with both. Now that all @mariozechner packages are at the same version (0.64.0),
+// bun hoists to a single copy, so the registration above covers both module scopes.
+// If pi-agent-core ever pins a different pi-ai version (creating a nested copy again),
+// restore the nested import: '@mariozechner/pi-agent-core/node_modules/@mariozechner/pi-ai/...'
 
 // Model resolution (extracted for testability + custom-endpoint precedence)
 import { resolvePiModel } from './model-resolution.ts';
@@ -107,7 +108,7 @@ interface InitMessage {
   branchFromSessionPath?: string;
   branchFromSdkTurnId?: string;
   customEndpoint?: { api: CustomEndpointApi };
-  customModels?: Array<string | { id: string; contextWindow?: number }>;
+  customModels?: Array<string | { id: string; contextWindow?: number; maxTokens?: number; reasoning?: boolean }>;
   piAuth?: { provider: string; credential: PiCredential };
 }
 
@@ -360,16 +361,18 @@ function setInterceptorApiHints(model: { api?: string; provider?: string; baseUr
  * query the endpoint for its actual capabilities. Users can override
  * contextWindow via model objects in their connection config.
  */
-function buildCustomEndpointModelDef(id: string, overrides?: { contextWindow?: number }) {
+function buildCustomEndpointModelDef(id: string, overrides?: { contextWindow?: number; maxTokens?: number; reasoning?: boolean }) {
   return {
     id,
     name: id,
-    reasoning: false,
+    reasoning: overrides?.reasoning ?? false,
     input: ['text'] as ('text' | 'image')[],
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
     // Default 128K — users can override via contextWindow in model config.
     contextWindow: overrides?.contextWindow ?? 131_072,
-    maxTokens: 8_192,
+    // Default 32K — matches Pi SDK's own cap in simple-options.js.
+    // Users can override via maxTokens in model config (e.g. reasoning models need more).
+    maxTokens: overrides?.maxTokens ?? 32_000,
   };
 }
 
@@ -411,6 +414,8 @@ let customEndpointModelIds: Set<string> = new Set();
 interface CustomModelEntry {
   id: string;
   contextWindow?: number;
+  maxTokens?: number;
+  reasoning?: boolean;
 }
 
 /**
@@ -418,7 +423,7 @@ interface CustomModelEntry {
  * Note: registerProvider replaces the entire provider, so we maintain a Set of all
  * known model IDs and always pass the full set.
  */
-const customModelOverrides = new Map<string, { contextWindow?: number }>();
+const customModelOverrides = new Map<string, { contextWindow?: number; maxTokens?: number; reasoning?: boolean }>();
 
 function registerCustomEndpointModels(
   registry: PiModelRegistry,
@@ -428,7 +433,9 @@ function registerCustomEndpointModels(
 ): void {
   for (const m of models) {
     customEndpointModelIds.add(m.id);
-    if (m.contextWindow) customModelOverrides.set(m.id, { contextWindow: m.contextWindow });
+    if (m.contextWindow || m.maxTokens || m.reasoning !== undefined) {
+      customModelOverrides.set(m.id, { contextWindow: m.contextWindow, maxTokens: m.maxTokens, reasoning: m.reasoning });
+    }
   }
   const allIds = [...customEndpointModelIds];
   registry.registerProvider('custom-endpoint', {
@@ -478,7 +485,7 @@ function createAuthenticatedRegistry(): {
       : [initConfig.model || 'default']
     ).map(m => typeof m === 'string'
       ? { id: stripPiPrefix(m) }
-      : { id: stripPiPrefix(m.id), contextWindow: m.contextWindow });
+      : { id: stripPiPrefix(m.id), contextWindow: m.contextWindow, maxTokens: m.maxTokens, reasoning: m.reasoning });
     customEndpointModelIds = new Set();  // Reset on fresh registry creation
     registerCustomEndpointModels(modelRegistry, api, initConfig.baseUrl!.trim(), modelEntries);
   } else if (hasCustomEndpoint && !initConfig?.customEndpoint) {

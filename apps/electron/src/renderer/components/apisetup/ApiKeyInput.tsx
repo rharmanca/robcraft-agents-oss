@@ -139,8 +139,8 @@ const COMPAT_ANTHROPIC_DEFAULTS = 'claude-opus-4-6, claude-sonnet-4-6, claude-ha
 const COMPAT_OPENAI_DEFAULTS = 'openai/gpt-5.2-codex, openai/gpt-5.1-codex-mini'
 const COMPAT_MINIMAX_DEFAULTS = 'MiniMax-M2.7, MiniMax-M2.7-highspeed'
 const COMPAT_KIMI_DEFAULTS = 'k2p5, kimi-k2-thinking'
-const COMPAT_XIAOMI_DEFAULTS = 'mimo-v2-pro, mimo-v2-flash, mimo-v2-omni'
-const COMPAT_XIAOMI_TOKEN_PLAN_DEFAULTS = 'mimo-v2-pro, mimo-v2-omni'
+const COMPAT_XIAOMI_DEFAULTS = 'mimo-v2.5-pro, mimo-v2.5, mimo-v2-pro, mimo-v2-flash, mimo-v2-omni'
+const COMPAT_XIAOMI_TOKEN_PLAN_DEFAULTS = 'mimo-v2.5-pro, mimo-v2.5, mimo-v2-pro, mimo-v2-omni'
 
 function getPresetsForProvider(providerType: 'anthropic' | 'openai' | 'pi' | 'google' | 'pi_api_key'): Preset[] {
   if (providerType === 'pi_api_key') return ANTHROPIC_PRESETS

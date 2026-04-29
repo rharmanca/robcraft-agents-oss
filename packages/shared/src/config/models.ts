@@ -9,33 +9,8 @@
  * 2. The convenience exports (ANTHROPIC_MODELS, OPENAI_MODELS) auto-update
  * 3. Update llm-connections.ts if adding a new built-in connection
  */
-// Bedrock-native → bare Anthropic ID reverse mapping.
-// Duplicated from llm-connections.ts to avoid circular imports (llm-connections imports models).
-// Must stay in sync with BEDROCK_MODEL_MAP in llm-connections.ts.
-const BEDROCK_TO_BARE: Record<string, string> = {
-  // US inference profile IDs (primary)
-  'us.anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'us.anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'us.anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  'us.anthropic.claude-opus-4-5-20251101-v1:0': 'claude-opus-4-5-20251101',
-  'us.anthropic.claude-sonnet-4-5-20250929-v1:0': 'claude-sonnet-4-5-20250929',
-  // EU inference profile IDs
-  'eu.anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'eu.anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'eu.anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  'eu.anthropic.claude-opus-4-5-20251101-v1:0': 'claude-opus-4-5-20251101',
-  'eu.anthropic.claude-sonnet-4-5-20250929-v1:0': 'claude-sonnet-4-5-20250929',
-  // Global inference profile IDs
-  'global.anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'global.anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'global.anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  // Base IDs (no region prefix)
-  'anthropic.claude-opus-4-6-v1': 'claude-opus-4-6',
-  'anthropic.claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'anthropic.claude-haiku-4-5-20251001-v1:0': 'claude-haiku-4-5-20251001',
-  'anthropic.claude-opus-4-5-20251101-v1:0': 'claude-opus-4-5-20251101',
-  'anthropic.claude-sonnet-4-5-20250929-v1:0': 'claude-sonnet-4-5-20250929',
-};
+import { BEDROCK_TO_BARE } from './model-id-maps.ts';
+
 function bedrockToBarId(modelId: string): string {
   return BEDROCK_TO_BARE[modelId] ?? modelId;
 }
@@ -66,6 +41,8 @@ export interface ModelDefinition {
   provider: ModelProvider;
   /** Maximum context window in tokens */
   contextWindow: number;
+  /** Maximum output tokens. Used by custom endpoint models to override the default (32K). */
+  maxTokens?: number;
   /** Whether this model supports thinking/reasoning effort. Defaults to true when undefined. */
   supportsThinking?: boolean;
 }
@@ -82,6 +59,15 @@ export const MODEL_REGISTRY: ModelDefinition[] = [
   // ----------------------------------------
   // Anthropic Claude Models
   // ----------------------------------------
+  {
+    id: 'claude-opus-4-7',
+    name: 'Opus 4.7',
+    shortName: 'Opus',
+    description: 'Most capable — high-res vision, adaptive thinking',
+    provider: 'anthropic',
+    contextWindow: 1_000_000,
+    maxTokens: 128_000,
+  },
   {
     id: 'claude-opus-4-6',
     name: 'Opus 4.6',

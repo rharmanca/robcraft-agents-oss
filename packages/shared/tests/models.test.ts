@@ -7,6 +7,7 @@ import { isClaudeModel, isOpusModel, getModelShortName } from '../src/config/mod
 describe('isClaudeModel', () => {
   // Direct Anthropic model IDs
   it('detects direct Anthropic Claude model IDs', () => {
+    expect(isClaudeModel('claude-opus-4-7')).toBe(true);
     expect(isClaudeModel('claude-sonnet-4-6')).toBe(true);
     expect(isClaudeModel('claude-opus-4-6')).toBe(true);
     expect(isClaudeModel('claude-haiku-4-5-20251001')).toBe(true);
@@ -56,6 +57,7 @@ describe('isClaudeModel', () => {
 
 describe('getModelShortName', () => {
   it('returns registry shortName for known models', () => {
+    expect(getModelShortName('claude-opus-4-7')).toBe('Opus');
     expect(getModelShortName('claude-opus-4-6')).toBe('Opus');
     expect(getModelShortName('claude-sonnet-4-6')).toBe('Sonnet');
     expect(getModelShortName('claude-haiku-4-5-20251001')).toBe('Haiku');
