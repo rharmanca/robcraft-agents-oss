@@ -12,7 +12,7 @@ describe('resolveClaudeThinkingOptions', () => {
     })
 
     expect(result).toEqual({
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       effort: 'medium',
     })
   })
@@ -78,7 +78,7 @@ describe('resolveClaudeThinkingOptions', () => {
     })
 
     expect(result).toEqual({
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       effort: 'xhigh',
     })
   })

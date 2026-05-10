@@ -894,11 +894,12 @@ function TreeViewConnector({ depth }: { depth: number; isLastChild?: boolean }) 
 function ActivityRow({ activity, onOpenDetails, isLastChild, sessionFolderPath, displayMode = 'detailed' }: ActivityRowProps) {
   const depth = activity.depth || 0
 
-  // Intermediate messages (LLM commentary) - render with dashed circle icon
-  // Show "Thinking" while streaming, stripped markdown content when complete
+  // Intermediate messages (LLM commentary) - render with dashed circle icon.
+  // Show streamed commentary when available; fall back to "Thinking..." only
+  // before the model has emitted any visible progress text.
   if (activity.type === 'intermediate') {
     const isThinking = activity.status === 'running'
-    const displayContent = isThinking ? 'Thinking...' : stripMarkdown(activity.content || '')
+    const displayContent = activity.content ? stripMarkdown(activity.content) : 'Thinking...'
     const isComplete = activity.status === 'completed'
     return (
       <div className="flex items-stretch">

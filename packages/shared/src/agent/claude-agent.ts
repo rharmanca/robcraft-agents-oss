@@ -152,7 +152,7 @@ export function resolveClaudeThinkingOptions(args: {
 
   if (supportsAdaptiveThinking) {
     return {
-      thinking: { type: 'adaptive' as const },
+      thinking: { type: 'adaptive' as const, display: 'summarized' as const },
       effort,
     };
   }
