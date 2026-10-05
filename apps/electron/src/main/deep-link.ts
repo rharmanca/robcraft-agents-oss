@@ -239,11 +239,6 @@ export async function handleDeepLink(
   resolveClientId?: (webContentsId: number) => string | undefined,
   preferredClientId?: string,
 ): Promise<DeepLinkResult> {
-  // No relayed action or sign-in URL can execute in the first trial build.
-  const trialDeepLinksDisabled: boolean = true
-  if (trialDeepLinksDisabled) {
-    return { success: false, error: 'Deep-link actions and sign-in callbacks are disabled for RobCraft Trial.' }
-  }
   const target = parseDeepLink(url)
 
   if (!target) {

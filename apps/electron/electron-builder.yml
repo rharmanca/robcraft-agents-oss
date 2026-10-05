@@ -1,5 +1,5 @@
-appId: dev.robweb.robcraft.trial
-productName: RobCraft Trial
+appId: dev.robweb.robcraft
+productName: RobCraft
 copyright: Copyright © 2026 Craft Docs Ltd.
 
 electronVersion: "39.2.7"
@@ -69,11 +69,20 @@ files:
 
 extraMetadata:
   main: dist/main.cjs
-  name: robcraft-trial
-  version: 0.14.0-robtrial.1
+  name: robcraft
+  version: 0.14.0-rob.1
 
-# This trial has no update provider and must never publish or self-replace.
+# User-owned Linux fork: manual updates, no automatic publishing or self-replacement.
 publish: null
+
+protocols:
+  - name: Craft Agents links
+    schemes:
+      - craftagents
+
+appImage:
+  executableArgs:
+    - --ozone-platform=x11
 
 # Disable ASAR to avoid decompression overhead and click delays
 asar: false
@@ -199,7 +208,7 @@ linux:
     - target: AppImage
       arch:
         - x64
-  artifactName: "RobCraft-Trial-${arch}.${ext}"
+  artifactName: "RobCraft-${arch}.${ext}"
   extraResources:
     - from: node_modules/@anthropic-ai/claude-agent-sdk
       to: app/node_modules/@anthropic-ai/claude-agent-sdk

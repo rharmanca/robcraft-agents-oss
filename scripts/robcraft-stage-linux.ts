@@ -15,7 +15,7 @@ const config: BuildConfig = {
 }
 const phase = process.argv[2]
 if (phase !== 'prepare' && phase !== 'finalize') throw new Error('Use prepare or finalize only')
-if (rootDir !== '/home/crafttrial/builds/73bd9c2a3573158bea880984eb8d5fdb41e0cac2/source') {
+if (rootDir !== '/home/crafttrial/builds/robcraft-full-0.14.0-rob.1/source') {
   throw new Error('Staging is restricted to the approved source tree')
 }
 if (existsSync(join(rootDir, '.env'))) throw new Error('Build tree must contain no .env')

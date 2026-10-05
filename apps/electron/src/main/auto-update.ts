@@ -1,5 +1,5 @@
 /**
- * RobCraft Trial has no updater instance, feed, cache watcher, or install hook.
+ * RobCraft has no updater instance, feed, cache watcher, or install hook.
  * Keep the existing RPC interface so the UI reports the disabled policy without
  * loading electron-updater. Only a separately reviewed local artifact may replace it.
  */
@@ -7,7 +7,7 @@ import { getAppVersion } from '@craft-agent/shared/version'
 import type { UpdateInfo } from '../shared/types'
 import type { EventSink } from '@craft-agent/server-core/transport'
 
-const DISABLED = 'Official updates are disabled for RobCraft Trial; use a separately reviewed local build.'
+const DISABLED = 'Official updates are disabled for RobCraft; use a separately reviewed local build.'
 
 interface CheckOptions { autoDownload?: boolean }
 export interface UpdateOnLaunchResult {

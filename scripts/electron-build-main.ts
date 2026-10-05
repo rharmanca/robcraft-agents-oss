@@ -1,6 +1,6 @@
 /**
  * Cross-platform main process build script
- * Trial-only build: refuses .env and never embeds OAuth/telemetry environment values
+ * Local-fork build: refuses .env and never embeds OAuth/telemetry environment values
  */
 
 import { spawn } from "bun";
@@ -37,7 +37,7 @@ function getBuildDefines(): string[] {
   ];
 
   return definedVars.map((varName) => {
-    // These optional identity/telemetry values are deliberately absent in the trial.
+    // These optional identity/telemetry values are deliberately absent in this local fork.
     const value = "";
     return `--define:process.env.${varName}="${value}"`;
   });
@@ -250,7 +250,7 @@ async function buildWhatsAppWorker(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  if (existsSync(join(ROOT_DIR, ".env"))) throw new Error("RobCraft Trial refuses .env input");
+  if (existsSync(join(ROOT_DIR, ".env"))) throw new Error("RobCraft refuses .env input");
 
   // Ensure dist directory exists
   if (!existsSync(DIST_DIR)) {

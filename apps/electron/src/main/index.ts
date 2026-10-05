@@ -1,6 +1,5 @@
-// Trial identity and paths must be established before all other imports.
-// Do not import a user's shell environment into this clean-identity build.
-import './trial-bootstrap'
+// Permanent RobCraft identity before import-time configuration side effects.
+import './robcraft-bootstrap'
 
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell } from 'electron'
 import { createHash, randomUUID } from 'crypto'
@@ -219,7 +218,13 @@ let pendingDeepLink: string | null = null
 // Supports multi-instance dev: CRAFT_APP_NAME env var (e.g., "Craft Agents [1]")
 app.setName(process.env.CRAFT_APP_NAME || 'Craft Agents')
 
-// RobCraft Trial does not register an OS URL protocol or sign-in callback.
+// Restore normal sign-in/deep-link support. The permanent launcher and desktop
+// descriptor retain the original craftagents scheme for hosted callback compatibility.
+if (process.defaultApp) {
+  if (process.argv.length >= 2) app.setAsDefaultProtocolClient(DEEPLINK_SCHEME, process.execPath, [process.argv[1]])
+} else {
+  app.setAsDefaultProtocolClient(DEEPLINK_SCHEME)
+}
 
 // Apply network proxy settings early (Node-level only — Electron sessions require app.whenReady)
 import { applyConfiguredProxySettings } from './network-proxy'
@@ -1123,8 +1128,8 @@ app.whenReady().then(async () => {
       app.relaunch()
       app.exit(0)
     })
-    // Updater startup is absent in the trial; manual RPC routes are inert too.
-    mainLog.info('[auto-update] Disabled for RobCraft Trial')
+    // This user-owned fork uses deliberate local updates, never upstream self-replacement.
+    mainLog.info('[auto-update] Manual updates for RobCraft')
 
     // Process pending deep link from cold start
     if (pendingDeepLink) {

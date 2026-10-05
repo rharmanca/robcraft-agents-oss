@@ -34,7 +34,7 @@ import type {
 
 const DEFAULT_WORKSPACES_DIR = join(CONFIG_DIR, 'workspaces');
 
-// RobCraft Trial never imports legacy workspaces from another identity or directory.
+// RobCraft never imports legacy workspaces from another identity or directory.
 
 // ============================================================
 // Path Utilities

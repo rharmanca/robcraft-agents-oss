@@ -44,7 +44,7 @@ import { CONFIG_DIR } from '../../config/paths.ts';
 // File location
 const CREDENTIALS_FILE = join(CONFIG_DIR, 'credentials.enc');
 
-// RobCraft Trial never copies legacy credentials into its blank store.
+// RobCraft never copies legacy credentials into its blank store.
 
 // File format constants
 const MAGIC_BYTES = Buffer.from('CRAFT01\0');
