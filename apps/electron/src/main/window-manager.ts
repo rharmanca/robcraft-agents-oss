@@ -171,7 +171,7 @@ export class WindowManager {
    * so these setTitle() calls aren't clobbered by the static <title> tag.
    */
   private refreshWindowTitles(): void {
-    const defaultTitle = app.getName()
+    const defaultTitle = process.env.CRAFT_DISPLAY_NAME || app.getName()
     const showWorkspaceName = this.windows.size > 1
     for (const { window, workspaceId } of this.windows.values()) {
       if (window.isDestroyed()) continue

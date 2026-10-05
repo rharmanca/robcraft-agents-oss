@@ -70,7 +70,7 @@ files:
 extraMetadata:
   main: dist/main.cjs
   name: robcraft
-  version: 0.14.0-rob.1
+  version: 0.14.0-rob.2
 
 # User-owned Linux fork: manual updates, no automatic publishing or self-replacement.
 publish: null
@@ -203,12 +203,17 @@ nsis:
 linux:
   icon: resources/icon.png
   category: Utility
+  desktop:
+    entry:
+      Name: RobAgents
+      Comment: RobAgents local desktop application
+      StartupWMClass: RobCraft
   maintainer: "Craft Docs Ltd. <support@craft.do>"
   target:
     - target: AppImage
       arch:
         - x64
-  artifactName: "RobCraft-${arch}.${ext}"
+  artifactName: "RobAgents-${arch}.${ext}"
   extraResources:
     - from: node_modules/@anthropic-ai/claude-agent-sdk
       to: app/node_modules/@anthropic-ai/claude-agent-sdk

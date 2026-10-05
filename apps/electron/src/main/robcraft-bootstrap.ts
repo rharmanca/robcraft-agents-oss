@@ -27,10 +27,12 @@ process.env.XDG_DATA_HOME = join(home, '.local', 'share')
 process.env.TMPDIR = join(home, '.cache', 'robcraft', 'tmp')
 process.env.CRAFT_CONFIG_DIR = paths.craft
 process.env.CRAFT_APP_NAME = 'RobCraft'
+process.env.CRAFT_DISPLAY_NAME = 'RobAgents'
 process.env.CRAFT_DEEPLINK_SCHEME = 'craftagents'
 process.env.CRAFT_RPC_HOST = '127.0.0.1'
 process.env.CRAFT_RPC_PORT = '0'
 app.setName('RobCraft')
+app.setAboutPanelOptions({ applicationName: 'RobAgents' })
 mkdirSync(paths.electron, { recursive: true, mode: 0o700 })
 mkdirSync(process.env.TMPDIR, { recursive: true, mode: 0o700 })
 app.setPath('userData', paths.electron)

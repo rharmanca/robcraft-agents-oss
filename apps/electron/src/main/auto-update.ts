@@ -7,7 +7,7 @@ import { getAppVersion } from '@craft-agent/shared/version'
 import type { UpdateInfo } from '../shared/types'
 import type { EventSink } from '@craft-agent/server-core/transport'
 
-const DISABLED = 'Official updates are disabled for RobCraft; use a separately reviewed local build.'
+const DISABLED = 'Official updates are disabled for RobAgents; use a separately reviewed local build.'
 
 interface CheckOptions { autoDownload?: boolean }
 export interface UpdateOnLaunchResult {

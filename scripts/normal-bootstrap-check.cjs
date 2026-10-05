@@ -7,15 +7,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const crypto = require('node:crypto');
-const root = '/home/crafttrial/builds/robcraft-full-0.14.0-rob.1/source';
+const root = '/home/crafttrial/builds/robagents-ui-0.14.0-rob.2/source';
 assert.equal(process.cwd(), root);
 const esbuild = require(path.join(root, 'node_modules/esbuild'));
 const yaml = require(path.join(root, 'node_modules/js-yaml'));
 const compiled = esbuild.buildSync({entryPoints: [path.join(root, 'apps/electron/src/main/robcraft-bootstrap.ts')], bundle:true, platform:'node', format:'cjs', external:['electron'], write:false, logLevel:'silent'}).outputFiles[0].text;
 function run(uid, home, username) {
   const env = {HOME:home, USER:username, DISPLAY:':2', NODE_OPTIONS:'SYNTHETIC_ONLY', ANTHROPIC_API_KEY:'SYNTHETIC_ONLY', CRAFT_SERVER_URL:'https://synthetic.invalid', CRAFT_CONFIG_DIR:'/synthetic/foreign'};
-  const observed = {writes:[], names:[], paths:{}};
-  const modules = {'electron':{app:{setName:n=>observed.names.push(n), setPath:(k,v)=>observed.paths[k]=v}}, 'node:fs':{mkdirSync:(p,o)=>observed.writes.push({p,o})}, 'node:os':{homedir:()=>home, userInfo:()=>({username,uid})}, 'node:path':path};
+  const observed = {writes:[], names:[], paths:{}, about:{}};
+  const modules = {'electron':{app:{setName:n=>observed.names.push(n), setAboutPanelOptions:v=>observed.about=v, setPath:(k,v)=>observed.paths[k]=v}}, 'node:fs':{mkdirSync:(p,o)=>observed.writes.push({p,o})}, 'node:os':{homedir:()=>home, userInfo:()=>({username,uid})}, 'node:path':path};
   const context = {process:{env,getuid:()=>uid}, require:(name)=>{assert.ok(Object.hasOwn(modules,name),'Unexpected bootstrap import: '+name); return modules[name];}, exports:{}, module:{exports:{}}};
   vm.runInNewContext(compiled, context, {timeout:2000});
   return {env, observed};
@@ -28,6 +28,7 @@ for (const [home,name] of [['/home/velocirobtor','velocirobtor'],['/home/synthet
   assert.equal(observed.paths.userData,path.join(home,'.config/robcraft'));
   assert.equal(observed.paths.sessionData,observed.paths.userData);
   assert.deepEqual(observed.names,['RobCraft']);
+  assert.equal(env.CRAFT_DISPLAY_NAME,'RobAgents'); assert.equal(observed.about.applicationName,'RobAgents');
   assert.equal(env.CRAFT_DEEPLINK_SCHEME,'craftagents');
   assert.equal(env.CRAFT_RPC_HOST,'127.0.0.1'); assert.equal(env.CRAFT_RPC_PORT,'0');
   for (const key of ['NODE_OPTIONS','ANTHROPIC_API_KEY','CRAFT_SERVER_URL']) assert.equal(env[key],undefined);
@@ -37,7 +38,8 @@ for (const [home,name] of [['/home/velocirobtor','velocirobtor'],['/home/synthet
 assert.throws(()=>run(0,'/root','root'),/must not run as root/); passed++;
 const builder = yaml.load(fs.readFileSync(path.join(root,'apps/electron/electron-builder.yml'),'utf8'));
 assert.equal(builder.appId,'dev.robweb.robcraft'); assert.equal(builder.productName,'RobCraft');
-assert.equal(builder.extraMetadata.name,'robcraft'); assert.equal(builder.extraMetadata.version,'0.14.0-rob.1');
+assert.equal(builder.linux.desktop.entry.Name,'RobAgents'); assert.equal(builder.linux.desktop.entry.StartupWMClass,'RobCraft');
+assert.equal(builder.extraMetadata.name,'robcraft'); assert.equal(builder.extraMetadata.version,'0.14.0-rob.2');
 assert.deepEqual(builder.appImage.executableArgs,['--ozone-platform=x11']); assert.equal(builder.publish,null);
 assert.ok(builder.linux.files.includes('dist/**/*') && builder.linux.files.includes('!**/*.map'));
 assert.deepEqual(builder.protocols[0].schemes,['craftagents']); passed++;
