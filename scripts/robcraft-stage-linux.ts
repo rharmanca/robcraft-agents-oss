@@ -1,9 +1,9 @@
 import {
   downloadBun, downloadUv, copySDK, verifySDKCopy, copyRipgrep,
-  copyInterceptor, copyPiAgentServer, copyInterceptorBundle,
+  copyInterceptor, copyInterceptorBundle,
   type BuildConfig,
 } from './build/common'
-import { existsSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 
@@ -34,7 +34,27 @@ if (phase === 'prepare') {
   copyRipgrep(config)
   copyInterceptor(config)
 } else {
-  copyPiAgentServer(config)
+  // Approved correction is specific to this frozen dependency graph. Never
+  // silently drop a native requirement if a later bundle actually references it.
+  const lock = readFileSync(join(rootDir, 'bun.lock'))
+  if (createHash('sha256').update(lock).digest('hex') !== '50a9c1afa74b700b954bc580e08c907dea0b1dd3021cb7b2f7d2ce678a1aedb0') {
+    throw new Error('Dependency lock differs from the approved pinned build')
+  }
+  const piSource = join(rootDir, 'packages/pi-agent-server/dist/index.js')
+  if (!lstatSync(piSource).isFile() || lstatSync(piSource).size === 0) throw new Error('Pi subprocess must be a nonempty real compiled file')
+  if (lock.toString('utf8').includes('koffi') || readFileSync(piSource, 'utf8').includes('koffi')) {
+    throw new Error('koffi is present/referenced: this narrowly approved omission is not applicable')
+  }
+  for (const name of ['@earendil-works/pi-coding-agent', '@earendil-works/pi-ai']) {
+    const manifest = JSON.parse(readFileSync(join(rootDir, 'node_modules', name, 'package.json'), 'utf8'))
+    for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+      if (manifest[field]?.koffi) throw new Error(`Unexpected native dependency in ${name}`)
+    }
+  }
+  const piDest = join(electronDir, 'resources/pi-agent-server')
+  mkdirSync(piDest, { recursive: true })
+  copyFileSync(piSource, join(piDest, 'index.js'))
+  console.log('PI_NATIVE_GATE_PASS: frozen lock and compiled consumer do not reference koffi; compiled subprocess copied')
   copyInterceptorBundle(config)
   copyInterceptor(config)
   verifySDKCopy(config)
@@ -47,8 +67,7 @@ if (phase === 'prepare') {
     'node_modules/@anthropic-ai/claude-agent-sdk-binary/claude',
     'node_modules/@vscode/ripgrep/bin/rg',
     'resources/pi-agent-server/index.js',
-    'resources/pi-agent-server/node_modules/koffi/index.js',
-    'resources/pi-agent-server/node_modules/koffi/package.json',
+
     'packages/shared/src/unified-network-interceptor.ts',
     'packages/shared/src/interceptor-common.ts',
     'packages/shared/src/feature-flags.ts',
@@ -68,10 +87,7 @@ if (phase === 'prepare') {
   for (const name of required) record(join(electronDir, name), name)
   const worker = join(rootDir, 'packages/messaging-whatsapp-worker/dist/worker.cjs')
   record(worker, 'extraResources/messaging-whatsapp-worker/worker.cjs')
-  const nativeDir = join(electronDir, 'resources/pi-agent-server/node_modules/koffi/build/koffi/linux_x64')
-  const native = readdirSync(nativeDir).filter(n => n.endsWith('.node'))
-  if (!native.length) throw new Error('Linux-x64 koffi native asset is missing')
-  for (const name of native) record(join(nativeDir,name), `resources/pi-agent-server/node_modules/koffi/build/koffi/linux_x64/${name}`)
+
   for (const dir of ['docs','themes','permissions','tool-icons','scripts','release-notes']) {
     const assetDir = join(electronDir, 'dist/resources', dir)
     if (!existsSync(assetDir) || !readdirSync(assetDir).length) throw new Error(`Required resource directory missing/empty: ${dir}`)
