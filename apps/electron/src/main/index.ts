@@ -1,7 +1,6 @@
-// Load user's shell environment first (before other imports that may use env)
-// This ensures tools like Homebrew, nvm, etc. are available to the agent
-import { loadShellEnv } from './shell-env'
-loadShellEnv()
+// Trial identity and paths must be established before all other imports.
+// Do not import a user's shell environment into this clean-identity build.
+import './trial-bootstrap'
 
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell } from 'electron'
 import { createHash, randomUUID } from 'crypto'
@@ -108,7 +107,7 @@ import { setPerfEnabled, enableDebug } from '@craft-agent/shared/utils'
 import { registerPiModelResolver } from '@craft-agent/shared/config'
 import { getPiModelsForAuthProvider, getAllPiModels } from '@craft-agent/shared/config'
 import { initNotificationService, initBadgeIcon, initInstanceBadge, updateBadgeCount } from './notifications'
-import { checkForUpdatesOnLaunch, setAutoUpdateEventSink, isUpdating, setBeforeUpdateQuitHook, setBeforeUpdateInstallHook, setInstallQuitFailedHook } from './auto-update'
+import { setAutoUpdateEventSink, isUpdating, setBeforeUpdateQuitHook, setBeforeUpdateInstallHook, setInstallQuitFailedHook } from './auto-update'
 import type { EventSink } from '@craft-agent/server-core/transport'
 import { validateGitBashPath, checkVCRedistInstalled } from '@craft-agent/server-core/services'
 
@@ -220,17 +219,7 @@ let pendingDeepLink: string | null = null
 // Supports multi-instance dev: CRAFT_APP_NAME env var (e.g., "Craft Agents [1]")
 app.setName(process.env.CRAFT_APP_NAME || 'Craft Agents')
 
-// Register as default protocol client for craftagents:// URLs
-// This must be done before app.whenReady() on some platforms
-if (process.defaultApp) {
-  // Development mode: need to pass the app path
-  if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient(DEEPLINK_SCHEME, process.execPath, [process.argv[1]])
-  }
-} else {
-  // Production mode
-  app.setAsDefaultProtocolClient(DEEPLINK_SCHEME)
-}
+// RobCraft Trial does not register an OS URL protocol or sign-in callback.
 
 // Apply network proxy settings early (Node-level only — Electron sessions require app.whenReady)
 import { applyConfiguredProxySettings } from './network-proxy'
@@ -1134,13 +1123,8 @@ app.whenReady().then(async () => {
       app.relaunch()
       app.exit(0)
     })
-    if (app.isPackaged) {
-      checkForUpdatesOnLaunch().catch(err => {
-        mainLog.error('[auto-update] Launch check failed:', err)
-      })
-    } else {
-      mainLog.info('[auto-update] Skipping auto-update in dev mode')
-    }
+    // Updater startup is absent in the trial; manual RPC routes are inert too.
+    mainLog.info('[auto-update] Disabled for RobCraft Trial')
 
     // Process pending deep link from cold start
     if (pendingDeepLink) {

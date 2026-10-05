@@ -1,10 +1,10 @@
 /**
  * Cross-platform main process build script
- * Loads .env and passes OAuth defines to esbuild
+ * Trial-only build: refuses .env and never embeds OAuth/telemetry environment values
  */
 
 import { spawn } from "bun";
-import { existsSync, readFileSync, statSync, mkdirSync } from "fs";
+import { existsSync, statSync, mkdirSync } from "fs";
 import { join } from "path";
 
 const ROOT_DIR = join(import.meta.dir, "..");
@@ -19,28 +19,7 @@ const WA_WORKER_DIR = join(ROOT_DIR, "packages/messaging-whatsapp-worker");
 const WA_WORKER_SOURCE = join(WA_WORKER_DIR, "src/worker.ts");
 const WA_WORKER_OUTPUT = join(WA_WORKER_DIR, "dist/worker.cjs");
 
-// Load .env file if it exists
-function loadEnvFile(): void {
-  const envPath = join(ROOT_DIR, ".env");
-  if (existsSync(envPath)) {
-    const content = readFileSync(envPath, "utf-8");
-    for (const line of content.split("\n")) {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith("#")) {
-        const eqIndex = trimmed.indexOf("=");
-        if (eqIndex > 0) {
-          const key = trimmed.slice(0, eqIndex).trim();
-          let value = trimmed.slice(eqIndex + 1).trim();
-          if ((value.startsWith('"') && value.endsWith('"')) ||
-              (value.startsWith("'") && value.endsWith("'"))) {
-            value = value.slice(1, -1);
-          }
-          process.env[key] = value;
-        }
-      }
-    }
-  }
-}
+// Trial build never loads account/environment files from disk.
 
 // Get build-time defines for esbuild (OAuth, Sentry DSN, etc.)
 // NOTE: Sentry source map upload is intentionally disabled for the main process.
@@ -58,7 +37,8 @@ function getBuildDefines(): string[] {
   ];
 
   return definedVars.map((varName) => {
-    const value = process.env[varName] || "";
+    // These optional identity/telemetry values are deliberately absent in the trial.
+    const value = "";
     return `--define:process.env.${varName}="${value}"`;
   });
 }
@@ -270,7 +250,7 @@ async function buildWhatsAppWorker(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  loadEnvFile();
+  if (existsSync(join(ROOT_DIR, ".env"))) throw new Error("RobCraft Trial refuses .env input");
 
   // Ensure dist directory exists
   if (!existsSync(DIST_DIR)) {

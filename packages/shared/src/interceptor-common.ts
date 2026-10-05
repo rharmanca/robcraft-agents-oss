@@ -31,7 +31,7 @@ export const DEBUG = INTERCEPTOR_LOGGING_ENABLED &&
  * config/paths.ts because this module is preloaded standalone into the Pi
  * subprocess; keep the rule in sync with `resolveConfigDir()`.
  */
-const CONFIG_DIR = process.env.CRAFT_CONFIG_DIR?.trim() || join(homedir(), '.craft-agent');
+const CONFIG_DIR = process.env.CRAFT_CONFIG_DIR?.trim() || join(homedir(), '.local', 'share', 'robcraft-trial', 'craft');
 
 /** Config file path for reading settings in the SDK subprocess */
 export const CONFIG_FILE = join(CONFIG_DIR, 'config.json');

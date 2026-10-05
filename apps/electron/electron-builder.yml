@@ -1,5 +1,5 @@
-appId: com.lukilabs.craft-agent
-productName: Craft Agents
+appId: dev.robweb.robcraft.trial
+productName: RobCraft Trial
 copyright: Copyright © 2026 Craft Docs Ltd.
 
 electronVersion: "39.2.7"
@@ -69,11 +69,11 @@ files:
 
 extraMetadata:
   main: dist/main.cjs
+  name: robcraft-trial
+  version: 0.14.0-robtrial.1
 
-# Auto-update: electron-updater fetches from this URL for update manifests (.yml files)
-publish:
-  provider: generic
-  url: https://thecraftagents.com/electron/latest
+# This trial has no update provider and must never publish or self-replace.
+publish: null
 
 # Disable ASAR to avoid decompression overhead and click delays
 asar: false
@@ -199,7 +199,7 @@ linux:
     - target: AppImage
       arch:
         - x64
-  artifactName: "Craft-Agents-${arch}.${ext}"
+  artifactName: "RobCraft-Trial-${arch}.${ext}"
   extraResources:
     - from: node_modules/@anthropic-ai/claude-agent-sdk
       to: app/node_modules/@anthropic-ai/claude-agent-sdk
