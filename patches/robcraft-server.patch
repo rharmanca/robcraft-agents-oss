@@ -1,0 +1,59 @@
+--- a/packages/server/src/index.ts
++++ b/packages/server/src/index.ts
+@@ -312,7 +312,7 @@
+ 
+ const serverProto = instance.protocol === 'wss' ? 'https' : 'http'
+ console.log(`CRAFT_SERVER_URL=${instance.protocol}://${instance.host}:${instance.port}`)
+-console.log(`CRAFT_SERVER_TOKEN=${instance.token}`)
++console.log('[server] Authentication token configured (value suppressed)')
+ if (webuiHandler) {
+   console.log(`CRAFT_WEBUI_URL=${serverProto}://0.0.0.0:${instance.port}`)
+ }
+--- a/apps/webui/src/index.html
++++ b/apps/webui/src/index.html
+@@ -3,7 +3,7 @@
+ <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+-  <title>Craft Agents</title>
++  <title>RobAgents</title>
+   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+   <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+   <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+--- a/apps/webui/src/login.html
++++ b/apps/webui/src/login.html
+@@ -3,7 +3,7 @@
+ <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+-  <title>Craft Agents — Login</title>
++  <title>RobAgents — Login</title>
+   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+   <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+   <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+@@ -225,11 +225,11 @@
+ </head>
+ <body>
+   <div class="card">
+-    <h1>Craft Agents</h1>
+-    <p class="subtitle">Enter your server token to continue</p>
++    <h1>RobAgents</h1>
++    <p class="subtitle">Enter your server password to continue</p>
+ 
+     <form id="login-form">
+-      <label for="password">Server Token</label>
++      <label for="password">Server Password</label>
+       <input
+         id="password"
+         name="password"
+--- a/apps/webui/vite.config.ts
++++ b/apps/webui/vite.config.ts
+@@ -20,7 +20,7 @@
+   build: {
+     outDir: resolve(__dirname, 'dist'),
+     emptyDirBeforeWrite: true,
+-    sourcemap: true,
++    sourcemap: false,
+     rollupOptions: {
+       input: {
+         main: resolve(__dirname, 'src/index.html'),
